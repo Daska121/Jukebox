@@ -1,15 +1,13 @@
-# music_cog.py (human readable version)
 import asyncio
 from typing import Dict, List, Optional
-
 import discord
 from discord.ext import commands
 import yt_dlp
 from datetime import datetime
 
-MUSICBOX_RED = 0xE53935  # nice red
-HELP_THUMBNAIL_URL = "https://static.wikia.nocookie.net/minecraft_gamepedia/images/e/ee/Jukebox_JE2_BE2.png/revision/latest?cb=20201202075007"  # replace with your own icon url (optional)
-HELP_BANNER_URL = "https://imgur.com/GA98FeQ.png"     # replace with your own banner url (optional)
+MUSICBOX_RED = 0xE53935  
+HELP_THUMBNAIL_URL = "https://static.wikia.nocookie.net/minecraft_gamepedia/images/e/ee/Jukebox_JE2_BE2.png/revision/latest?cb=20201202075007"  
+HELP_BANNER_URL = "https://imgur.com/GA98FeQ.png"     
 
 
 def make_embed(title: str, description: str = "", *, color: int = 0x2F3136) -> discord.Embed:
@@ -17,17 +15,16 @@ def make_embed(title: str, description: str = "", *, color: int = 0x2F3136) -> d
     embed.set_footer(text="Music Box")
     return embed
 
-# yt-dlp settings: we want audio only, no playlists, and allow "ytsearch:" queries
+
 YTDL_OPTIONS = {
     "format": "bestaudio[ext=m4a]/bestaudio/best",
     "noplaylist": True,
     "quiet": False,
     "default_search": "ytsearch1",
     "source_address": "0.0.0.0",
-    "js_runtimes": {"deno": {"path": r"C:\Users\domat\.deno\bin\deno.exe"}},
+    "js_runtimes": {"deno": {"path": r"C:\Users\username\.deno\bin\deno.exe"}}, #Replace with your Username
     "remote_components": ["ejs:github"],
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    ##"cookiesfrombrowser": ("chrome",), Για όταν το κάνω port στο Raspi
     "referer": "https://www.youtube.com/",
     "cookiefile": "cookies.txt",
 }
@@ -432,3 +429,4 @@ class music_cog(commands.Cog):
 # IMPORTANT for discord.py 2.x extensions
 async def setup(bot: commands.Bot):
     await bot.add_cog(music_cog(bot))
+
