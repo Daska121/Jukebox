@@ -1,7 +1,7 @@
 # 🎵 Jukebox
 
 <p align="center">
-  <img src="https://imgur.com/GA98FeQ.png" alt="Jukebox Banner" width="750"/>
+  <img src="assets/logo.png" width="400">
 </p>
 
 <p align="center">
