@@ -1,213 +1,129 @@
-# 🎵 Jukebox
+# 🎵 Jukebox — Discord Music Bot
 
-# Currently not working / under maintenance.
-
-<p align="center">
-  <img src="assets/logo.png" width="200">
-</p>
-
-<p align="center">
-  <b>Jukebox is a reliable Discord music bot that joins your voice channel and streams high-quality audio from YouTube. Built for smooth playback, low resource usage, and 24/7 hosting. Simple commands, powerful performance — just play and enjoy. 🎶</b>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Node.js-18+-green">
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue">
-  <img src="https://img.shields.io/badge/Raspberry%20Pi-Ready-orange">
-  <img src="https://img.shields.io/badge/License-MIT-purple">
-  <img src="https://img.shields.io/badge/Status-Active-success">
-</p>
+A self-hosted Discord music bot written in Python.
+Plays YouTube audio in voice channels with full support for Discord's **DAVE E2E encryption** (enforced by Discord since March 2026).
 
 ---
 
-# 🚀 About
+## Features
 
-**Jukebox** is a lightweight and reliable Discord music bot that streams audio from YouTube using `yt-dlp` and `FFmpeg`.
-
-Designed for:
-- Stable playback
-- Low resource usage
-- 24/7 hosting
-- Raspberry Pi deployment
-- Windows auto-start support
+- Play YouTube videos by URL or search query
+- Per-server queue with skip, pause, resume, and stop
+- Auto-leaves voice after 5 minutes of inactivity
+- Full DAVE (Discord Audio & Video E2E Encryption / MLS) support via `dave.py`
+- HLS streams handled via a yt-dlp pipe to avoid 403 on signed segment URLs
+- Next song pre-buffered in the background for near-instant transitions
 
 ---
 
-# ✨ Features
+## Prerequisites
 
-- ▶ YouTube URL playback
-- 🔎 YouTube search support
-- 📜 Advanced queue system
-- ⏭ Skip tracks
-- ⏸ Pause / Resume
-- 🔁 Loop support
-- ⏱ Auto-leave after 5 minutes inactivity
-- ⚡ Optimized with yt-dlp
-- 🍪 Cookie support for restricted videos
-- 🖥 Windows startup support
-- 🍓 Raspberry Pi optimized
-- 🐳 Docker compatible
+| Dependency | Version tested | Notes |
+|---|---|---|
+| Python | 3.14 (64-bit) | Must match the `dave.py` wheel |
+| discord.py | 2.7.1 | `pip install discord.py[voice]` |
+| dave.py | 0.1.2 | DisnakeDev's libdave bindings — replaces `davey` |
+| davey | 0.1.4 | Still required by discord.py's import; patched at runtime |
+| yt-dlp | ≥ 2026.2.4 | `pip install yt-dlp` |
+| FFmpeg | any recent | Must be on `PATH` |
+| PyNaCl | 1.6.2 | Transport encryption (installed with discord.py[voice]) |
 
----
-
-# 📦 Commands
-
-| Command | Description |
-|----------|------------|
-| `/join` | Join your voice channel |
-| `/play <url or search>` | Play YouTube link or search |
-| `/pause` | Pause current song |
-| `/resume` | Resume playback |
-| `/skip` | Skip current track |
-| `/queue` | Show queue |
-| `/loop` | Toggle loop |
-| `/leave` | Disconnect |
+> **Why `davey_compat.py`?**
+> discord.py imports `davey` at startup. `davey 0.1.4` (Snazzah's Rust implementation)
+> produces MLS frames that Discord's client cannot decrypt, causing silent audio.
+> `davey_compat.py` is a shim that monkey-patches `discord.voice_state.davey` and
+> `discord.gateway.davey` to use `dave.py` (DisnakeDev's official C++ libdave bindings)
+> instead, while exposing the same API discord.py expects.
 
 ---
 
-# 🛠 Installation
+## Setup
 
-## 1️⃣ Clone Repository
+1. **Clone the repo**
 
-```bash
-git clone https://github.com/YOUR_USERNAME/jukebox.git
-cd jukebox
+   ```bash
+   git clone https://github.com/yourname/jukebox.git
+   cd jukebox
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   pip install -r requirements_bot.txt
+   ```
+
+3. **Create `token.txt`** in the project folder with your bot token on the first line:
+
+   ```
+   YOUR_BOT_TOKEN_HERE
+   ```
+
+4. **Create `cookies.txt`** (Netscape format) — required for age-restricted or
+   region-locked YouTube videos.
+   Export it from your browser with a cookie-export extension (e.g. *Get cookies.txt LOCALLY*).
+
+5. **Run**
+
+   ```bash
+   python main.py
+   ```
+
+---
+
+## Commands
+
+| Command | Aliases | Description |
+|---|---|---|
+| `!play <url or search>` | `!p` | Play or queue a song |
+| `!skip` | `!s`, `!next` | Skip current track |
+| `!pause` | — | Pause playback |
+| `!resume` | `!r` | Resume playback |
+| `!stop` | — | Stop and clear the queue |
+| `!queue` | `!q` | Show the current queue |
+| `!np` | `!nowplaying` | Show the currently playing track |
+| `!join` | `!j` | Join your voice channel |
+| `!leave` | `!l`, `!dc` | Leave voice and clear the queue |
+| `!test` | — | Play a 5-second 440 Hz test tone (verifies audio pipeline) |
+| `!help` | — | Show the help embed |
+
+---
+
+## Project Structure
+
+```
+main.py           — Bot entry point; patches davey → davey_compat at startup
+music_cog.py      — All music commands and playback logic
+davey_compat.py   — DAVE E2E encryption shim (dave.py wrapping the davey API)
+token.txt         — Bot token (not committed)
+cookies.txt       — YouTube cookies (not committed)
+requirements_bot.txt — Minimal dependency list for the bot
 ```
 
 ---
 
-## 2️⃣ Install Dependencies
+## Technical Notes
 
-```bash
-npm install
-```
+### DAVE E2E Encryption
 
----
+Discord enforces the DAVE protocol (MLS-based E2E encryption) in all voice channels
+since March 2, 2026.  Every bot must complete the MLS handshake or receive error 4017.
 
-## 3️⃣ Install System Requirements
+The shim (`davey_compat.py`) handles:
+- MLS session init, proposals, commits, and welcomes via `libdave`
+- Recognising all current channel members so libdave can validate their credentials
+- Opus frame encryption through libdave's `Encryptor` before discord.py's
+  transport layer (XChaCha20-Poly1305) wraps it
 
-### Windows
-- Install Node.js 18+
-- Install FFmpeg and add to PATH
-- Install yt-dlp
+### HLS Audio Delivery
 
-### Linux / Raspberry Pi
+As of early 2026, yt-dlp returns only HLS (m3u8) streams for most YouTube videos.
+FFmpeg cannot fetch the signed segment URLs directly (403 Forbidden) because the
+URLs are IP-locked to the IPv4 address used at extraction time, and FFmpeg may
+prefer IPv6.
 
-```bash
-sudo apt update
-sudo apt install -y ffmpeg python3 python3-pip
-pip install -U yt-dlp
-```
+The solution: yt-dlp runs as a subprocess with `--source-address 0.0.0.0` (forcing
+IPv4) and pipes its audio output to FFmpeg's stdin, so yt-dlp handles all
+authentication and segment fetching.
 
----
-
-# 🔐 Bot Token Setup
-
-This project reads the bot token from a file called:
-
-```
-token.txt
-```
-
-Create a file named `token.txt` in the root directory and paste your bot token inside:
-
-```
-YOUR_DISCORD_BOT_TOKEN_HERE
-```
-
-⚠ Do NOT add quotes or spaces.
-
----
-
-# ▶ Running Jukebox
-
-```bash
-node index.js
-```
-
----
-
-# 🔄 24/7 Hosting (PM2 Recommended)
-
-```bash
-npm install -g pm2
-pm2 start index.js --name jukebox
-pm2 save
-pm2 startup
-```
-
-Check logs:
-
-```bash
-pm2 logs jukebox
-```
-
----
-
-# 🖥 Windows Auto Start (Hidden Mode)
-
-1. Open **Task Scheduler**
-2. Create new task
-3. Trigger → At Startup
-4. Action → Start `run.bat`
-5. Enable:
-   - ✔ Run whether user is logged in or not
-   - ✔ Run with highest privileges
-   - ✔ Hidden
-
----
-
-# 🍓 Raspberry Pi Deployment
-
-```bash
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
-npm install
-pm2 start index.js --name jukebox
-pm2 save
-```
-
----
-
-# 📁 Project Structure
-
-```
-jukebox/
-│
-├── commands/
-├── events/
-├── utils/
-├── index.js
-├── package.json
-├── token.txt
-└── README.md
-```
-
----
-
-# 🛠 Troubleshooting
-
-### ❌ Bot not playing audio
-- Verify FFmpeg installed
-- Verify yt-dlp installed
-- Check voice permissions
-
-### ❌ "Sign in to confirm you're not a bot"
-- Export YouTube cookies
-- Place `cookies.txt` in root folder
-
-### ❌ Bot doesn't join voice
-- Check permissions
-- Enable required intents in Discord Developer Portal
-
----
-
-# 📜 License
-
-MIT License
-
----
-
-<p align="center">
-  🎶 Jukebox — Your Discord server’s music engine
-</p>
+To reduce the gap between songs the next song's yt-dlp subprocess is pre-started
+while the current song is still playing.
