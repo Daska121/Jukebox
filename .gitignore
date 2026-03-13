@@ -1,4 +1,20 @@
-node_modules/
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+
+# Bot secrets — never commit these
 token.txt
 cookies.txt
-.env
+
+# Runtime artefacts
+bot.log
+jukebox_*/          # yt-dlp HLS temp directories
+
+# Claude Code
+.claude/
+Python-3.11.15/

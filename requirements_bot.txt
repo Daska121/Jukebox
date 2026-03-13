@@ -1,0 +1,10 @@
+# Core bot dependencies — install with:
+#   pip install -r requirements_bot.txt
+#
+# Python 3.14 (64-bit) is required to match the dave.py wheel.
+
+discord.py[voice]==2.7.1
+davey                       # discord.py imports this; patched at runtime by davey_compat.py
+dave                        # DisnakeDev's official libdave Python bindings (replaces davey)
+yt-dlp>=2026.2.4
+PyNaCl>=1.5.0               # transport encryption (usually installed by discord.py[voice])
