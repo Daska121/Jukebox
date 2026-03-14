@@ -55,6 +55,7 @@ YTDL_OPTIONS = {
     "default_search": "ytsearch1",
     "source_address": "0.0.0.0",
     "cookiefile": "cookies.txt",
+    "remote_components": "ejs:github",
 }
 
 
@@ -371,6 +372,10 @@ class music_cog(commands.Cog):
                     await member.guild.voice_client.disconnect(force=True)
         elif before.channel is not None and after.channel is None:
             print(f"[VOICE] Left: {before.channel} (guild: {member.guild})")
+            guild_id = member.guild.id
+            self._kill_queued_procs(guild_id)
+            self.now_playing.pop(guild_id, None)
+            self._cancel_idle_timer(guild_id)
         elif before.channel != after.channel:
             print(f"[VOICE] Moved: {before.channel} -> {after.channel} (guild: {member.guild})")
 

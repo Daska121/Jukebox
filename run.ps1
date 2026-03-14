@@ -1,3 +1,3 @@
 Set-Location $PSScriptRoot
-.\venv\Scripts\activate
+.\.venv\Scripts\activate
 python main.py >> bot.log 2>&1
