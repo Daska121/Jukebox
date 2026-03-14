@@ -1,20 +1,11 @@
-# Python
 .venv/
 __pycache__/
 *.pyc
 *.pyo
-
-# IDE
 .idea/
-
-# Bot secrets — never commit these
 token.txt
 cookies.txt
-
-# Runtime artefacts
 bot.log
-jukebox_*/          # yt-dlp HLS temp directories
-
-# Claude Code
+jukebox_*/
 .claude/
 Python-3.11.15/
