@@ -55,7 +55,7 @@ YTDL_OPTIONS = {
     "default_search": "ytsearch1",
     "source_address": "0.0.0.0",
     "cookiefile": "cookies.txt",
-    "remote_components": "ejs:github",
+    "remote_components": ["ejs:github"],
 }
 
 
