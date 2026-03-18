@@ -6,6 +6,10 @@ __pycache__/
 token.txt
 cookies.txt
 bot.log
+<<<<<<< Updated upstream
 jukebox_*/
+=======
+jukebox_*/         
+>>>>>>> Stashed changes
 .claude/
 Python-3.11.15/
